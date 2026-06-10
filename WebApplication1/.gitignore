@@ -1,0 +1,90 @@
+# .gitignore for Visual Studio, .NET (including .NET 8) and Razor Pages projects
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.csproj.user
+*.vcxproj.user
+
+# Visual Studio folder
+.vs/
+
+# Build results
+[Bb]in/
+[Oo]bj/
+artifacts/
+
+# Publish output
+publish/
+wwwroot/node_modules/
+
+# NuGet packages
+*.nupkg
+.nuget/packages/
+project.lock.json
+project.fragment.lock.json
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# IIS Express
+IISExpress/
+
+# Dotnet user-secrets
+secrets.json
+
+# Entity Framework
+*.db
+*.mdf
+*.ldf
+
+# Logs, test results and coverage
+*.log
+TestResults/
+*.trx
+coverage/
+
+# Rider
+.idea/
+
+# VS Code
+.vscode/
+
+# Node
+node_modules/
+
+# Certificates and keys
+*.pfx
+*.pem
+*.key
+
+# Package managers
+packages/
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+
+# JetBrains Rider
+.idea/
+
+# Visual Studio Code workspace storage
+.history/
+
+# Temporary files
+*.tmp
+*.temp
+~$*
+
+# Others
+*.commitlintrc
+
+# Ignore appsettings.json and local environment overrides
+appsettings.json
+appsettings.Development.json
+appsettings.*.Development.json
+appsettings.*.Local.json

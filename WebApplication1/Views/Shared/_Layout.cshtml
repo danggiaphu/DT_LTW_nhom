@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DriveShare</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/WebApplication1.styles.css" asp-append-version="true" />
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f6f8fc;
+            color: #1f1f1f;
+        }
+        .navbar-custom {
+            background-color: #ffffff;
+            border-bottom: 1px solid #e0e0e0;
+            box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 2px 6px 2px rgba(60,64,67,0.15);
+        }
+        .navbar-custom .navbar-brand {
+            font-weight: 700;
+            color: #0b57d0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .navbar-custom .nav-link {
+            font-weight: 500;
+            color: #444746;
+            padding: 8px 16px !important;
+            border-radius: 20px;
+            transition: all 0.2s ease;
+        }
+        .navbar-custom .nav-link:hover {
+            background-color: #f1f3f4;
+            color: #1f1f1f;
+        }
+        .navbar-custom .nav-link.active-link {
+            background-color: #e8f0fe;
+            color: #0b57d0;
+        }
+        .main-container {
+            min-height: calc(100vh - 130px);
+        }
+        footer {
+            background-color: #ffffff;
+            border-top: 1px solid #e0e0e0;
+            padding: 15px 0;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-custom mb-3 py-2">
+            <div class="container-fluid px-4">
+                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="bi bi-cloud-arrow-up-fill fs-3 text-primary"></i>
+                    <span>DriveShare</span>
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1 align-items-center">
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active-link" : "")" asp-area="" asp-controller="Home" asp-action="Index">
+                                <i class="bi bi-house-door me-1"></i> Trang chủ
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "File" ? "active-link" : "")" asp-area="" asp-controller="File" asp-action="Index">
+                                <i class="bi bi-folder2-open me-1"></i> Tài liệu của tôi
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Leaderboard" ? "active-link" : "")" asp-area="" asp-controller="Leaderboard" asp-action="Index">
+                                <i class="bi bi-trophy me-1"></i> Bảng xếp hạng
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="d-flex align-items-center">
+                        <partial name="_LoginPartial" />
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container-fluid px-4 main-container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="footer text-muted text-center mt-5">
+        <div class="container">
+            &copy; 2026 - <strong>DriveShare</strong> - Ứng dụng chia sẻ tài liệu trực tuyến & vinh danh thành viên
+        </div>
+    </footer>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

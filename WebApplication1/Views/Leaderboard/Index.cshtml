@@ -1,0 +1,298 @@
+@model WebApplication1.Models.LeaderboardViewModel
+
+@{
+    ViewData["Title"] = "Bảng Xếp Hạng";
+}
+
+@functions {
+    public string GetFileIcon(string originalFileName)
+    {
+        if (string.IsNullOrEmpty(originalFileName)) return "bi-file-earmark-fill text-muted";
+        var ext = System.IO.Path.GetExtension(originalFileName).ToLower();
+        switch (ext)
+        {
+            case ".pdf":
+                return "bi-file-pdf-fill text-danger";
+            case ".doc":
+            case ".docx":
+                return "bi-file-word-fill text-primary";
+            case ".xls":
+            case ".xlsx":
+                return "bi-file-excel-fill text-success";
+            case ".ppt":
+            case ".pptx":
+                return "bi-file-ppt-fill text-warning";
+            case ".zip":
+            case ".rar":
+            case ".7z":
+            case ".tar":
+            case ".gz":
+                return "bi-file-zip-fill text-warning";
+            case ".png":
+            case ".jpg":
+            case ".jpeg":
+            case ".gif":
+            case ".svg":
+            case ".webp":
+                return "bi-file-image-fill text-info";
+            case ".mp3":
+            case ".wav":
+            case ".ogg":
+            case ".m4a":
+                return "bi-file-music-fill text-secondary";
+            case ".mp4":
+            case ".mov":
+            case ".avi":
+            case ".mkv":
+                return "bi-file-play-fill text-dark";
+            case ".txt":
+            case ".md":
+                return "bi-file-text-fill text-muted";
+            default:
+                return "bi-file-earmark-fill text-muted";
+        }
+    }
+
+    public string FormatSize(long bytes)
+    {
+        if (bytes >= 1024 * 1024)
+            return (bytes / 1024.0 / 1024.0).ToString("0.00") + " MB";
+        return (bytes / 1024.0).ToString("0.00") + " KB";
+    }
+}
+
+<style>
+    .leaderboard-header {
+        background: linear-gradient(135deg, #0b57d0 0%, #1a73e8 100%);
+        color: #ffffff;
+        border-radius: 24px;
+        padding: 40px;
+        margin-bottom: 30px;
+        box-shadow: 0 10px 30px rgba(11, 87, 208, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    .leaderboard-header::after {
+        content: '';
+        position: absolute;
+        right: -50px;
+        top: -50px;
+        width: 200px;
+        height: 200px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+    }
+    .leaderboard-card {
+        background: #ffffff;
+        border-radius: 20px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        padding: 24px;
+        height: 100%;
+        transition: all 0.3s ease;
+    }
+    .leaderboard-card:hover {
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+    }
+    .rank-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+    }
+    .rank-1 {
+        background-color: #fef3c7;
+        color: #d97706;
+        border: 1px solid #fde68a;
+    }
+    .rank-2 {
+        background-color: #f3f4f6;
+        color: #4b5563;
+        border: 1px solid #e5e7eb;
+    }
+    .rank-3 {
+        background-color: #ffedd5;
+        color: #ea580c;
+        border: 1px solid #fed7aa;
+    }
+    .rank-default {
+        background-color: #f1f3f4;
+        color: #5f6368;
+    }
+    .leaderboard-list-item {
+        display: flex;
+        align-items: center;
+        padding: 14px;
+        border-radius: 12px;
+        margin-bottom: 8px;
+        transition: background-color 0.2s;
+    }
+    .leaderboard-list-item:hover {
+        background-color: #f8fafc;
+    }
+    .item-highlight-1 {
+        background-color: #fffbeb;
+        border: 1px solid #fef3c7;
+    }
+    .item-highlight-2 {
+        background-color: #f9fafb;
+        border: 1px solid #f3f4f6;
+    }
+    .item-highlight-3 {
+        background-color: #fffaf5;
+        border: 1px solid #ffedd5;
+    }
+    .leaderboard-value {
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: #0b57d0;
+        text-align: right;
+    }
+</style>
+
+<div class="container py-4">
+    <!-- Header Banner -->
+    <div class="leaderboard-header text-center text-sm-start d-sm-flex justify-content-between align-items-center">
+        <div>
+            <h1 class="fw-bold mb-2"><i class="bi bi-trophy-fill me-2 text-warning animate-bounce"></i>Bảng Xếp Hạng DriveShare</h1>
+            <p class="lead mb-0 text-white-50">Vinh danh những tài liệu phổ biến nhất và tài khoản đóng góp nhiều nhất hệ thống</p>
+        </div>
+        <div class="mt-3 mt-sm-0">
+            <a asp-controller="File" asp-action="Index" class="btn btn-light rounded-pill px-4 fw-semibold shadow-sm text-primary">
+                <i class="bi bi-arrow-left me-1"></i> Quay lại kho file
+            </a>
+        </div>
+    </div>
+
+    <!-- 2 Cột Thống Kê -->
+    <div class="row g-4">
+        <!-- 1. CỘT FILE TẢI NHIỀU NHẤT -->
+        <div class="col-lg-6">
+            <div class="leaderboard-card">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="p-3 bg-danger bg-opacity-10 rounded-4">
+                        <i class="bi bi-file-earmark-arrow-down-fill text-danger fs-3"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold m-0 text-dark">Tài liệu tải nhiều nhất</h4>
+                        <p class="text-secondary small mb-0">Các file có lượt tải về hoặc xem nhiều nhất từ người dùng</p>
+                    </div>
+                </div>
+
+                <div class="leaderboard-list">
+                    @if (Model.TopFiles == null || !Model.TopFiles.Any())
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-file-earmark-bar-graph fs-2 mb-2"></i>
+                            <p class="mb-0">Chưa có dữ liệu bảng xếp hạng file.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        int rank = 1;
+                        foreach (var file in Model.TopFiles)
+                        {
+                            string highlightClass = rank == 1 ? "item-highlight-1" : (rank == 2 ? "item-highlight-2" : (rank == 3 ? "item-highlight-3" : ""));
+                            string rankBadgeClass = rank == 1 ? "rank-1" : (rank == 2 ? "rank-2" : (rank == 3 ? "rank-3" : "rank-default"));
+                            
+                            <div class="leaderboard-list-item @highlightClass">
+                                <!-- Rank -->
+                                <div class="rank-badge @rankBadgeClass me-3">
+                                    @if (rank <= 3)
+                                    {
+                                        <i class="bi bi-award-fill"></i>
+                                    }
+                                    else
+                                    {
+                                        <span>@rank</span>
+                                    }
+                                </div>
+
+                                <!-- File Icon & Title -->
+                                <div class="d-flex align-items-center gap-2 flex-grow-1 min-w-0 me-2">
+                                    <i class="bi @GetFileIcon(file.OriginalFileName) fs-3"></i>
+                                    <div class="min-w-0">
+                                        <div class="text-dark fw-semibold text-truncate small" title="@file.Title">@file.Title</div>
+                                        <div class="text-muted text-truncate" style="font-size: 0.7rem;">@file.OriginalFileName • @FormatSize(file.FileSize)</div>
+                                    </div>
+                                </div>
+
+                                <!-- Download Count -->
+                                <div class="leaderboard-value flex-shrink-0 text-nowrap">
+                                    <span class="fs-5">@file.DownloadCount</span>
+                                    <span class="text-secondary small" style="font-size: 0.75rem; font-weight: 500;">tải</span>
+                                </div>
+                            </div>
+                            rank++;
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. CỘT ACCOUNT GỬI NHIỀU FILE NHẤT -->
+        <div class="col-lg-6">
+            <div class="leaderboard-card">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="p-3 bg-success bg-opacity-10 rounded-4">
+                        <i class="bi bi-people-fill text-success fs-3"></i>
+                    </div>
+                    <div>
+                        <h4 class="fw-bold m-0 text-dark">Đại sứ tích cực nhất</h4>
+                        <p class="text-secondary small mb-0">Các thành viên tải lên nhiều tài liệu hữu ích nhất</p>
+                    </div>
+                </div>
+
+                <div class="leaderboard-list">
+                    @if (Model.TopUsers == null || !Model.TopUsers.Any())
+                    {
+                        <div class="text-center py-5 text-muted">
+                            <i class="bi bi-person-x fs-2 mb-2"></i>
+                            <p class="mb-0">Chưa có dữ liệu bảng xếp hạng tài khoản.</p>
+                        </div>
+                    }
+                    else
+                    {
+                        int rank = 1;
+                        foreach (var user in Model.TopUsers)
+                        {
+                            string highlightClass = rank == 1 ? "item-highlight-1" : (rank == 2 ? "item-highlight-2" : (rank == 3 ? "item-highlight-3" : ""));
+                            string rankBadgeClass = rank == 1 ? "rank-1" : (rank == 2 ? "rank-2" : (rank == 3 ? "rank-3" : "rank-default"));
+
+                            <div class="leaderboard-list-item @highlightClass">
+                                <!-- Rank -->
+                                <div class="rank-badge @rankBadgeClass me-3">
+                                    @if (rank <= 3)
+                                    {
+                                        <i class="bi bi-award-fill"></i>
+                                    }
+                                    else
+                                    {
+                                        <span>@rank</span>
+                                    }
+                                </div>
+
+                                <!-- User info -->
+                                <div class="flex-grow-1 min-w-0 me-2">
+                                    <div class="text-dark fw-semibold text-truncate small">@user.FullName</div>
+                                    <div class="text-muted text-truncate" style="font-size: 0.7rem;">@user.Email</div>
+                                </div>
+
+                                <!-- File Count -->
+                                <div class="leaderboard-value flex-shrink-0 text-nowrap">
+                                    <span class="fs-5 text-success">@user.FileCount</span>
+                                    <span class="text-secondary small" style="font-size: 0.75rem; font-weight: 500;">files</span>
+                                </div>
+                            </div>
+                            rank++;
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

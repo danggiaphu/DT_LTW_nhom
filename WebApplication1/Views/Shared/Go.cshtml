@@ -1,0 +1,53 @@
+﻿@model WebApplication1.Models.FileShareLink
+
+@{
+    ViewData["Title"] = "Tải xuống tài liệu chia sẻ";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h4 class="mb-0"><i class="bi bi-file-earmark-arrow-down-fill"></i> Tải xuống tài liệu</h4>
+                </div>
+                <div class="card-body p-4 text-center">
+                    @if (Model.StoredFile != null)
+                    {
+                        <div class="mb-4">
+                            <i class="bi bi-file-earmark-zip" style="font-size: 4rem; color: #6c757d;"></i>
+                        </div>
+                        <h4 class="card-title text-truncate">@Model.StoredFile.Title</h4>
+                        <p class="text-muted text-truncate mb-2">Tên file gốc: @Model.StoredFile.OriginalFileName</p>
+
+                        <ul class="list-group list-group-flush mb-4 text-start">
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Dung lượng:
+                                <span class="badge bg-secondary rounded-pill">
+                                    @((Model.StoredFile.FileSize / 1024.0 / 1024.0).ToString("0.##")) MB
+                                </span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                Loại file:
+                                <span class="badge bg-info text-dark rounded-pill">@Model.StoredFile.ContentType</span>
+                            </li>
+                            @if (Model.ExpiresAt.HasValue)
+                            {
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    Hạn tải:
+                                    <span class="text-danger fw-bold">@Model.ExpiresAt.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                </li>
+                            }
+                        </ul>
+
+                        <div class="d-grid gap-2">
+                            <a asp-action="DownloadPublic" asp-controller="Share" asp-route-token="@Model.ShareToken" class="btn btn-success btn-lg">
+                                <i class="bi bi-download"></i> Tải xuống trực tiếp
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

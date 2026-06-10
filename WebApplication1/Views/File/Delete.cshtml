@@ -1,0 +1,44 @@
+﻿@model WebApplication1.Models.StoredFile
+
+@{
+    ViewData["Title"] = "Xóa tài liệu";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Xác nhận xóa tài liệu</h4>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Bạn có chắc chắn muốn xóa vĩnh viễn tài liệu này không? Hành động này không thể hoàn tác.</p>
+                    <hr />
+
+                    <dl class="row">
+                        <dt class="col-sm-4 font-weight-bold">Tiêu đề:</dt>
+                        <dd class="col-sm-8 text-primary">@Model.Title</dd>
+
+                        <dt class="col-sm-4 font-weight-bold">Tên file gốc:</dt>
+                        <dd class="col-sm-8 text-muted">@Model.OriginalFileName</dd>
+
+                        <dt class="col-sm-4 font-weight-bold">Dung lượng:</dt>
+                        <dd class="col-sm-8">@((Model.FileSize / 1024.0 / 1024.0).ToString("0.00")) MB</dd>
+
+                        <dt class="col-sm-4 font-weight-bold">Ngày đăng:</dt>
+                        <dd class="col-sm-8">@Model.UploadedAt.ToString("dd/MM/yyyy HH:mm")</dd>
+                    </dl>
+
+                    <hr />
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">Hủy bỏ</a>
+                            <button type="submit" class="btn btn-danger px-4">Đồng ý Xóa</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

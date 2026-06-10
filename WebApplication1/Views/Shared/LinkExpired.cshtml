@@ -1,0 +1,17 @@
+﻿@{
+    ViewData["Title"] = "Liên kết đã hết hạn";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <div class="alert alert-warning py-5 border-0 shadow-sm" role="alert">
+                <i class="bi bi-exclamation-triangle-fill text-warning mb-3" style="font-size: 3.5rem;"></i>
+                <h3 class="alert-heading">Liên kết đã hết hiệu lực!</h3>
+                <p class="mb-4">Xin lỗi, liên kết tải xuống này đã hết thời gian chia sẻ hoặc không tồn tại trong hệ thống.</p>
+                <hr>
+                <a class="btn btn-outline-primary" asp-controller="Home" asp-action="Index">Quay về trang chủ</a>
+            </div>
+        </div>
+    </div>
+</div>

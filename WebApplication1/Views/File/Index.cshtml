@@ -1,0 +1,427 @@
+@model IEnumerable<WebApplication1.Models.StoredFile>
+@using System.Security.Claims
+
+@{
+    ViewData["Title"] = "Kho tài liệu chia sẻ";
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var filter = ViewBag.CurrentFilter as string ?? "all";
+    var search = ViewBag.CurrentSearch as string ?? "";
+}
+
+@functions {
+    public string GetFileIcon(string originalFileName)
+    {
+        if (string.IsNullOrEmpty(originalFileName)) return "bi-file-earmark-fill text-muted";
+        var ext = System.IO.Path.GetExtension(originalFileName).ToLower();
+        switch (ext)
+        {
+            case ".pdf":
+                return "bi-file-pdf-fill text-danger";
+            case ".doc":
+            case ".docx":
+                return "bi-file-word-fill text-primary";
+            case ".xls":
+            case ".xlsx":
+                return "bi-file-excel-fill text-success";
+            case ".ppt":
+            case ".pptx":
+                return "bi-file-ppt-fill text-warning";
+            case ".zip":
+            case ".rar":
+            case ".7z":
+            case ".tar":
+            case ".gz":
+                return "bi-file-zip-fill text-warning";
+            case ".png":
+            case ".jpg":
+            case ".jpeg":
+            case ".gif":
+            case ".svg":
+            case ".webp":
+                return "bi-file-image-fill text-info";
+            case ".mp3":
+            case ".wav":
+            case ".ogg":
+            case ".m4a":
+                return "bi-file-music-fill text-secondary";
+            case ".mp4":
+            case ".mov":
+            case ".avi":
+            case ".mkv":
+                return "bi-file-play-fill text-dark";
+            case ".txt":
+            case ".md":
+                return "bi-file-text-fill text-muted";
+            default:
+                return "bi-file-earmark-fill text-muted";
+        }
+    }
+
+    public string FormatSize(long bytes)
+    {
+        if (bytes >= 1024 * 1024)
+            return (bytes / 1024.0 / 1024.0).ToString("0.00") + " MB";
+        return (bytes / 1024.0).ToString("0.00") + " KB";
+    }
+}
+
+<style>
+    .drive-container {
+        display: flex;
+        gap: 24px;
+        margin-top: 20px;
+    }
+    .drive-sidebar {
+        width: 260px;
+        flex-shrink: 0;
+    }
+    .drive-content {
+        flex-grow: 1;
+    }
+    .sidebar-btn {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 24px;
+        background: #ffffff;
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 4px 8px 3px rgba(60,64,67,0.15);
+        font-weight: 600;
+        color: #1f1f1f;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        margin-bottom: 20px;
+        width: fit-content;
+    }
+    .sidebar-btn:hover {
+        background-color: #f1f3f4;
+        box-shadow: 0 1px 3px 0 rgba(60,64,67,0.3), 0 5px 12px 4px rgba(60,64,67,0.15);
+    }
+    .sidebar-menu {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .sidebar-item a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 20px;
+        color: #444746;
+        text-decoration: none;
+        font-weight: 500;
+        border-radius: 20px;
+        margin-bottom: 4px;
+        transition: all 0.2s ease;
+    }
+    .sidebar-item a:hover {
+        background-color: #e8eaed;
+        color: #1f1f1f;
+    }
+    .sidebar-item.active a {
+        background-color: #e8f0fe;
+        color: #0b57d0;
+        font-weight: 600;
+    }
+    .search-container {
+        background: #ffffff;
+        border-radius: 24px;
+        box-shadow: 0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15);
+        padding: 6px 16px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 24px;
+    }
+    .search-input {
+        border: none;
+        outline: none;
+        width: 100%;
+        margin-left: 10px;
+        font-size: 1rem;
+        background: transparent;
+    }
+    .file-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+    .file-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e0e0e0;
+        padding: 16px;
+        position: relative;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 200px;
+    }
+    .file-card:hover {
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        border-color: #cbd5e1;
+        transform: translateY(-2px);
+    }
+    .file-card-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+    .file-card-icon {
+        font-size: 2.2rem;
+        line-height: 1;
+    }
+    .file-card-info {
+        flex-grow: 1;
+        min-width: 0;
+    }
+    .file-card-title {
+        font-weight: 600;
+        color: #1f1f1f;
+        margin-bottom: 2px;
+        font-size: 0.95rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .file-card-desc {
+        font-size: 0.8rem;
+        color: #5f6368;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        height: 36px;
+        margin-bottom: 8px;
+    }
+    .file-card-meta {
+        font-size: 0.75rem;
+        color: #70757a;
+        display: flex;
+        justify-content: space-between;
+        border-top: 1px solid #f1f3f4;
+        padding-top: 10px;
+        margin-top: auto;
+    }
+    .file-card-actions {
+        display: flex;
+        gap: 6px;
+        margin-top: 12px;
+    }
+    .action-btn {
+        flex-grow: 1;
+        font-size: 0.8rem;
+        font-weight: 500;
+        padding: 6px 12px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        transition: all 0.2s ease;
+    }
+    .share-link-alert {
+        background-color: #ffffff;
+        border-left: 5px solid #0f5132;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .badge-downloads {
+        background-color: #e8f0fe;
+        color: #0b57d0;
+        font-weight: 600;
+        border-radius: 12px;
+        padding: 4px 8px;
+        font-size: 0.75rem;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+</style>
+
+<div class="container-fluid py-3">
+    <!-- Hiển thị link chia sẻ thành công dạng Box sang trọng -->
+    @if (TempData["ShareUrl"] != null)
+    {
+        <div class="alert alert-dismissible fade show share-link-alert p-4 mb-4" role="alert">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <i class="bi bi-check-circle-fill text-success fs-4"></i>
+                <h5 class="alert-heading mb-0 text-success fw-bold">Tạo đường dẫn chia sẻ thành công!</h5>
+            </div>
+            <p class="mb-2 text-muted">File: <strong>@TempData["SharedFileTitle"]</strong></p>
+            <div class="d-flex gap-2 max-width-600">
+                <input type="text" class="form-control bg-light border-0 fw-semibold" id="shareLinkInput" value="@TempData["ShareUrl"]" readonly>
+                <button class="btn btn-primary px-3 text-nowrap d-flex align-items-center gap-2" type="button" onclick="navigator.clipboard.writeText(document.getElementById('shareLinkInput').value); alert('Đã sao chép đường dẫn chia sẻ vào bộ nhớ tạm!');">
+                    <i class="bi bi-clipboard"></i> Sao chép
+                </button>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="drive-container">
+        <!-- Sidebar trái -->
+        <div class="drive-sidebar">
+            @if (User.Identity.IsAuthenticated)
+            {
+                <a asp-action="Upload" class="sidebar-btn">
+                    <i class="bi bi-cloud-arrow-up-fill fs-4 text-primary"></i>
+                    <span>Tải file lên</span>
+                </a>
+            }
+            <ul class="sidebar-menu">
+                <li class="sidebar-item @(filter == "all" ? "active" : "")">
+                    <a asp-action="Index" asp-route-filter="all">
+                        <i class="bi bi-hdd-fill"></i>
+                        <span>Tất cả tài liệu</span>
+                    </a>
+                </li>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <li class="sidebar-item @(filter == "my" ? "active" : "")">
+                        <a asp-action="Index" asp-route-filter="my">
+                            <i class="bi bi-folder-fill"></i>
+                            <span>Tài liệu của tôi</span>
+                        </a>
+                    </li>
+                }
+                <li class="sidebar-item">
+                    <a asp-controller="Leaderboard" asp-action="Index">
+                        <i class="bi bi-trophy-fill text-warning"></i>
+                        <span>Bảng xếp hạng</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Vùng nội dung chính -->
+        <div class="drive-content">
+            <!-- Search bar và lọc -->
+            <form method="get" asp-action="Index" class="mb-4">
+                <input type="hidden" name="filter" value="@filter" />
+                <div class="search-container">
+                    <i class="bi bi-search text-muted fs-5"></i>
+                    <input type="text" name="search" class="search-input" placeholder="Tìm kiếm trong tài liệu..." value="@search" autocomplete="off" />
+                    @if (!string.IsNullOrEmpty(search))
+                    {
+                        <a asp-action="Index" asp-route-filter="@filter" class="btn btn-link text-muted p-0 me-2" title="Xóa tìm kiếm">
+                            <i class="bi bi-x-lg"></i>
+                        </a>
+                    }
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">Tìm kiếm</button>
+                </div>
+            </form>
+
+            <!-- Tiêu đề trang -->
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold m-0 text-dark">
+                    @if (filter == "my")
+                    {
+                        <span><i class="bi bi-folder2-open me-2 text-primary"></i>Tài liệu cá nhân của tôi</span>
+                    }
+                    else
+                    {
+                        <span><i class="bi bi-hdd-network-fill me-2 text-primary"></i>Kho tài liệu chung hệ thống</span>
+                    }
+                </h4>
+                <div class="text-muted small">
+                    Hiển thị <strong>@Model.Count()</strong> tệp tin
+                </div>
+            </div>
+
+            <!-- Grid danh sách files -->
+            @if (Model == null || !Model.Any())
+            {
+                <div class="card border-0 shadow-sm text-center py-5 bg-white rounded-4">
+                    <div class="card-body">
+                        <i class="bi bi-file-earmark-arrow-up text-muted display-1 mb-3"></i>
+                        <h5 class="fw-bold text-dark">Chưa có tệp tin nào</h5>
+                        <p class="text-secondary max-width-400 mx-auto">Không tìm thấy tài liệu phù hợp với điều kiện lọc hoặc từ khóa tìm kiếm của bạn.</p>
+                        @if (User.Identity.IsAuthenticated)
+                        {
+                            <a asp-action="Upload" class="btn btn-primary rounded-pill px-4 mt-2">Tải tệp tin đầu tiên</a>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="file-grid">
+                    @foreach (var item in Model)
+                    {
+                        <div class="file-card">
+                            <div>
+                                <!-- Card Header -->
+                                <div class="file-card-header">
+                                    <i class="bi @GetFileIcon(item.OriginalFileName) file-card-icon"></i>
+                                    <div class="file-card-info">
+                                        <div class="file-card-title" title="@item.Title">@item.Title</div>
+                                        <small class="text-muted text-truncate d-block" style="font-size: 0.75rem;" title="@item.OriginalFileName">
+                                            @item.OriginalFileName
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <!-- Card Description -->
+                                <div class="file-card-desc">
+                                    @(string.IsNullOrEmpty(item.Description) ? "Không có mô tả chi tiết." : item.Description)
+                                </div>
+                            </div>
+
+                            <!-- Footer info & buttons -->
+                            <div>
+                                <div class="file-card-meta">
+                                    <span>@FormatSize(item.FileSize)</span>
+                                    <span class="badge-downloads" title="Số lượt tải về">
+                                        <i class="bi bi-download"></i> @item.DownloadCount
+                                    </span>
+                                    <span>@item.UploadedAt.ToString("dd/MM/yyyy")</span>
+                                </div>
+
+                                <div class="file-card-actions">
+                                    <a asp-action="Download" asp-route-id="@item.Id" class="btn btn-outline-primary action-btn" title="Tải xuống trực tiếp">
+                                        <i class="bi bi-download"></i> Tải về
+                                    </a>
+
+                                    @if (User.Identity.IsAuthenticated && item.UserId == currentUserId)
+                                    {
+                                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-outline-danger action-btn" title="Xóa tệp tin">
+                                            <i class="bi bi-trash"></i> Xóa
+                                        </a>
+                                    }
+
+                                    <!-- Thêm Form chia sẻ ngay trên giao diện card -->
+                                    @if (User.Identity.IsAuthenticated && item.UserId == currentUserId)
+                                    {
+                                        <div class="btn-group flex-grow-1">
+                                            <button type="button" class="btn btn-outline-success action-btn dropdown-toggle w-100" data-bs-toggle="dropdown" aria-expanded="false">
+                                                <i class="bi bi-share"></i> Chia sẻ
+                                            </button>
+                                            <ul class="dropdown-menu dropdown-menu-end p-3 shadow-lg border-0 rounded-4" style="min-width: 200px;">
+                                                <form asp-controller="Share" asp-action="CreateLink" method="post">
+                                                    <input type="hidden" name="fileId" value="@item.Id" />
+                                                    <div class="mb-2">
+                                                        <label class="form-label small fw-bold">Thời gian hết hạn:</label>
+                                                        <select name="expireHours" class="form-select form-select-sm rounded-3">
+                                                            <option value="">Vĩnh viễn</option>
+                                                            <option value="1">1 Giờ</option>
+                                                            <option value="24">24 Giờ</option>
+                                                            <option value="168">1 Tuần</option>
+                                                        </select>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-success btn-sm w-100 rounded-3">Tạo Link</button>
+                                                </form>
+                                            </ul>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
