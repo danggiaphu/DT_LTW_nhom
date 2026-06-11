@@ -4,4 +4,6 @@ namespace WebApplication1.Data;
 public class ApplicationUser : IdentityUser
 {
     public string? FullName { get; set; }
+    public bool IsDisabled { get; set; } = false;
 }
+

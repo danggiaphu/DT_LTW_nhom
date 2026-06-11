@@ -1,33 +1,53 @@
 # Hướng dẫn cập nhật Cơ sở dữ liệu (Database Migration)
 
-Dưới đây là các cách bạn có thể thực hiện để cập nhật cơ sở dữ liệu sau khi thêm các thuộc tính `LastDownloadedAt` và `InactivityExpirationDays` vào bảng `StoredFiles`.
+Dưới đây là các cách bạn có thể thực hiện để cập nhật cơ sở dữ liệu sau khi sửa đổi/bổ sung các thuộc tính.
 
-## Cách 1: Sử dụng .NET CLI (Khuyên dùng)
-Hãy mở terminal tại thư mục gốc của dự án `d:\Hoctap\Detai\WebApplication1` và chạy lần lượt các lệnh sau:
+---
 
+## Migration 1 & 2: Cập nhật StoredFiles
+Cập nhật thuộc tính `LastDownloadedAt` và `InactivityExpirationDays` vào bảng `StoredFiles`.
+
+### Cách 1: Sử dụng .NET CLI (Khuyên dùng)
+Mở terminal tại thư mục gốc của dự án `d:\Hoctap\Detai\WebApplication1` và chạy:
 ```bash
-# 1. Tạo migration mới
 dotnet ef migrations add AddLastDownloadedAtAndExpirationDays
-
-# 2. Cập nhật vào cơ sở dữ liệu
 dotnet ef database update
 ```
 
-## Cách 2: Sử dụng Package Manager Console (trong Visual Studio)
-Nếu bạn phát triển bằng Visual Studio, hãy mở **Tools** > **NuGet Package Manager** > **Package Manager Console** và chạy các lệnh:
-
+### Cách 2: Sử dụng Package Manager Console (Visual Studio)
 ```powershell
 Add-Migration AddLastDownloadedAtAndExpirationDays
 Update-Database
 ```
 
-## Cách 3: Chạy trực tiếp Script SQL bằng SSMS (SQL Server Management Studio)
-Nếu bạn kết nối trực tiếp vào Database của dự án (`WebLuuTruDataDB` trên `.\SQLEXPRESS`), hãy thực thi câu lệnh SQL sau:
-
+### Cách 3: Chạy trực tiếp Script SQL (SSMS)
+Thực thi trên Database `WebLuuTruDataDB`:
 ```sql
--- 1. Thêm cột LastDownloadedAt (cho phép NULL, dùng để theo dõi ngày tải xuống cuối cùng)
 ALTER TABLE StoredFiles ADD LastDownloadedAt datetime2(7) NULL;
-
--- 2. Thêm cột InactivityExpirationDays (không cho phép NULL, mặc định là 30 ngày)
 ALTER TABLE StoredFiles ADD InactivityExpirationDays int NOT NULL DEFAULT 30;
 ```
+
+---
+
+## Migration 3: Thêm tính năng Vô hiệu hóa Tài khoản (IsDisabled)
+Cập nhật thuộc tính `IsDisabled` vào bảng `AspNetUsers`.
+
+### Cách 1: Sử dụng .NET CLI (Khuyên dùng)
+Mở terminal tại thư mục gốc của dự án và chạy:
+```bash
+dotnet ef migrations add AddIsDisabledToUser
+dotnet ef database update
+```
+
+### Cách 2: Sử dụng Package Manager Console (Visual Studio)
+```powershell
+Add-Migration AddIsDisabledToUser
+Update-Database
+```
+
+### Cách 3: Chạy trực tiếp Script SQL (SSMS)
+Thực thi trên Database `WebLuuTruDataDB`:
+```sql
+ALTER TABLE AspNetUsers ADD IsDisabled bit NOT NULL DEFAULT 0;
+```
+

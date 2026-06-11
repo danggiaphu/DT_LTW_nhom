@@ -59,9 +59,64 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Register middleware to check for disabled users
+app.UseMiddleware<WebApplication1.Middleware.DisableUserMiddleware>();
+
 app.MapRazorPages();
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
+// Seed Roles and Admin User
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+        var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+        
+        // Seed Roles
+        string[] roleNames = { "admin", "user" };
+        foreach (var roleName in roleNames)
+        {
+            if (!await roleManager.RoleExistsAsync(roleName))
+            {
+                await roleManager.CreateAsync(new IdentityRole(roleName));
+            }
+        }
+
+        // Seed Default Admin User
+        var adminEmail = "admin@driveshare.com";
+        var adminUser = await userManager.FindByEmailAsync(adminEmail);
+        if (adminUser == null)
+        {
+            var newAdmin = new ApplicationUser
+            {
+                UserName = adminEmail,
+                Email = adminEmail,
+                FullName = "System Administrator",
+                EmailConfirmed = true,
+                IsDisabled = false
+            };
+            var createAdminResult = await userManager.CreateAsync(newAdmin, "Admin@123456");
+            if (createAdminResult.Succeeded)
+            {
+                await userManager.AddToRoleAsync(newAdmin, "admin");
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while seeding the database.");
+    }
+}
+
 app.Run();
+

@@ -84,6 +84,14 @@
                                 <i class="bi bi-trophy me-1"></i> Bảng xếp hạng
                             </a>
                         </li>
+                        @if (User.IsInRole("admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["area"]?.ToString() == "Admin" && ViewContext.RouteData.Values["controller"]?.ToString() == "Account" ? "active-link" : "")" asp-area="Admin" asp-controller="Account" asp-action="Index">
+                                    <i class="bi bi-people-fill me-1"></i> Quản lý tài khoản
+                                </a>
+                            </li>
+                        }
                     </ul>
                     <div class="d-flex align-items-center">
                         <partial name="_LoginPartial" />

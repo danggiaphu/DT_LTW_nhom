@@ -1,0 +1,210 @@
+@model IEnumerable<WebApplication1.Models.UserAccountViewModel>
+
+@{
+    ViewData["Title"] = "Quản lý Tài khoản";
+    var totalUsers = Model.Count();
+    var activeUsers = Model.Count(u => !u.IsDisabled);
+    var disabledUsers = Model.Count(u => u.IsDisabled);
+}
+
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800 fw-bold text-primary">
+                <i class="bi bi-people-fill me-2"></i>Quản lý Tài khoản (Admin Area)
+            </h1>
+            <p class="text-muted mb-0">Quản lý trạng thái hoạt động và xem số lượng tài liệu của người dùng.</p>
+        </div>
+    </div>
+
+    <!-- Alert Messages -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+            <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Stat Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-sm-6 col-md-4">
+            <div class="card border-0 shadow-sm h-100 py-2" style="border-left: 4px solid #0d6efd !important;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1 fw-semibold">Tổng số tài khoản</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@totalUsers</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-people fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-4">
+            <div class="card border-0 shadow-sm h-100 py-2" style="border-left: 4px solid #198754 !important;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1 fw-semibold">Đang hoạt động</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@activeUsers</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-person-check fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-sm-6 col-md-4">
+            <div class="card border-0 shadow-sm h-100 py-2" style="border-left: 4px solid #dc3545 !important;">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1 fw-semibold">Đã vô hiệu hóa</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@disabledUsers</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-person-x fs-2 text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Họ và Tên / Email</th>
+                            <th>Vai trò (Roles)</th>
+                            <th class="text-center">Số tệp đăng tải</th>
+                            <th class="text-center">Trạng thái</th>
+                            <th class="text-end pe-4">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.Any())
+                        {
+                            foreach (var user in Model)
+                            {
+                                <tr>
+                                    <td class="ps-4 py-3">
+                                        <div class="d-flex align-items-center">
+                                            <div class="rounded-circle bg-light d-flex align-items-center justify-content-center text-primary fw-bold me-3 shadow-sm" style="width: 45px; height: 45px;">
+                                                @(!string.IsNullOrEmpty(user.FullName) ? user.FullName[0].ToString().ToUpper() : user.Email[0].ToString().ToUpper())
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0 fw-bold">@user.FullName</h6>
+                                                <small class="text-muted">@user.Email</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        @{
+                                            var isUserAdmin = user.Role.Contains("admin");
+                                            var roleClass = isUserAdmin ? "bg-danger-subtle text-danger border border-danger-subtle" : "bg-primary-subtle text-primary border border-primary-subtle";
+                                        }
+                                        <span class="badge rounded-pill px-3 py-2 text-uppercase @roleClass">@user.Role</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-inline-flex align-items-center px-3 py-1 bg-light rounded-pill border fw-bold text-secondary">
+                                            <i class="bi bi-file-earmark-arrow-up me-1"></i>
+                                            @user.FileCount
+                                        </div>
+                                    </td>
+                                    <td class="text-center">
+                                        @if (user.IsDisabled)
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-2 rounded-pill">
+                                                <i class="bi bi-x-circle me-1"></i>Đã vô hiệu hóa
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2 rounded-pill">
+                                                <i class="bi bi-check-circle me-1"></i>Đang hoạt động
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-end pe-4">
+                                        <form asp-area="Admin" asp-controller="Account" asp-action="ToggleStatus" method="post" class="d-inline">
+                                            <input type="hidden" name="id" value="@user.Id" />
+                                            @if (user.IsDisabled)
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-outline-success px-3 rounded-pill fw-semibold shadow-sm">
+                                                    <i class="bi bi-unlock-fill me-1"></i>Hủy vô hiệu
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-outline-danger px-3 rounded-pill fw-semibold shadow-sm">
+                                                    <i class="bi bi-lock-fill me-1"></i>Vô hiệu hóa
+                                                </button>
+                                            }
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="5" class="text-center py-5">
+                                    <i class="bi bi-people text-muted display-4"></i>
+                                    <p class="text-muted mt-2">Không tìm thấy tài khoản nào trên hệ thống.</p>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .bg-danger-subtle {
+        background-color: #f8d7da !important;
+    }
+    .bg-success-subtle {
+        background-color: #d1e7dd !important;
+    }
+    .bg-primary-subtle {
+        background-color: #cfe2ff !important;
+    }
+    .text-danger {
+        color: #dc3545 !important;
+    }
+    .text-success {
+        color: #198754 !important;
+    }
+    .text-primary {
+        color: #0b57d0 !important;
+    }
+    .border-danger-subtle {
+        border-color: #f5c2c7 !important;
+    }
+    .border-success-subtle {
+        border-color: #badbcc !important;
+    }
+    .border-primary-subtle {
+        border-color: #b6d4fe !important;
+    }
+</style>

@@ -176,6 +176,9 @@ public class ExternalLoginModel : PageModel
             var result = await _userManager.CreateAsync(user);
             if (result.Succeeded)
             {
+                // Gán quyền mặc định là 'user'
+                await _userManager.AddToRoleAsync(user, "user");
+
                 result = await _userManager.AddLoginAsync(user, info);
                 if (result.Succeeded)
                 {

@@ -92,6 +92,11 @@ public class LoginModel : PageModel
             ModelState.AddModelError(string.Empty, ErrorMessage);
         }
 
+        if (Request.Query.ContainsKey("disabled"))
+        {
+            ModelState.AddModelError(string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa.");
+        }
+
         returnUrl ??= Url.Content("~/");
 
         // Clear the existing external cookie to ensure a clean login process
@@ -110,6 +115,14 @@ public class LoginModel : PageModel
 
         if (ModelState.IsValid)
         {
+            // Kiểm tra xem tài khoản có bị vô hiệu hóa hay không
+            var user = await _signInManager.UserManager.FindByEmailAsync(Input.Email);
+            if (user != null && user.IsDisabled)
+            {
+                ModelState.AddModelError(string.Empty, "Tài khoản của bạn đã bị vô hiệu hóa.");
+                return Page();
+            }
+
             // This doesn't count login failures towards account lockout
             // To enable password failures to trigger account lockout, set lockoutOnFailure: true
             var result = await _signInManager.PasswordSignInAsync(Input.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
