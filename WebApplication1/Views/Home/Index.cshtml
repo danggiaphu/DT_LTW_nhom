@@ -1,8 +1,305 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model IEnumerable<WebApplication1.Models.StoredFile>
+@{
+    ViewData["Title"] = "Trang chủ - Hệ thống chia sẻ tài liệu";
+    var totalFiles = ViewBag.TotalFiles ?? 0;
+    var totalDownloads = ViewBag.TotalDownloads ?? 0;
+    var totalUsers = ViewBag.TotalUsers ?? 0;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@functions {
+    public string GetFileIcon(string originalFileName)
+    {
+        if (string.IsNullOrEmpty(originalFileName)) return "bi-file-earmark-fill text-muted";
+        var ext = System.IO.Path.GetExtension(originalFileName).ToLower();
+        switch (ext)
+        {
+            case ".pdf":
+                return "bi-file-pdf-fill text-danger";
+            case ".doc":
+            case ".docx":
+                return "bi-file-word-fill text-primary";
+            case ".xls":
+            case ".xlsx":
+                return "bi-file-excel-fill text-success";
+            case ".ppt":
+            case ".pptx":
+                return "bi-file-ppt-fill text-warning";
+            case ".zip":
+            case ".rar":
+            case ".7z":
+            case ".tar":
+            case ".gz":
+                return "bi-file-zip-fill text-warning";
+            case ".png":
+            case ".jpg":
+            case ".jpeg":
+            case ".gif":
+            case ".svg":
+            case ".webp":
+                return "bi-file-image-fill text-info";
+            case ".mp3":
+            case ".wav":
+            case ".ogg":
+            case ".m4a":
+                return "bi-file-music-fill text-secondary";
+            case ".mp4":
+            case ".mov":
+            case ".avi":
+            case ".mkv":
+                return "bi-file-play-fill text-dark";
+            case ".txt":
+            case ".md":
+                return "bi-file-text-fill text-muted";
+            default:
+                return "bi-file-earmark-fill text-muted";
+        }
+    }
+
+    public string FormatSize(long bytes)
+    {
+        if (bytes >= 1024 * 1024)
+            return (bytes / 1024.0 / 1024.0).ToString("0.00") + " MB";
+        return (bytes / 1024.0).ToString("0.00") + " KB";
+    }
+}
+
+<style>
+    .hero-section {
+        background: linear-gradient(135deg, #0b57d0 0%, #1a73e8 100%);
+        color: #ffffff;
+        border-radius: 24px;
+        padding: 50px 40px;
+        margin-bottom: 40px;
+        box-shadow: 0 10px 30px rgba(11, 87, 208, 0.15);
+        position: relative;
+        overflow: hidden;
+    }
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        top: -100px;
+        right: -50px;
+        border-radius: 50%;
+    }
+    .hero-section::after {
+        content: '';
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 70%);
+        bottom: -50px;
+        left: 10%;
+        border-radius: 50%;
+    }
+    .stat-card {
+        background: #ffffff;
+        border-radius: 20px;
+        border: 1px solid #e0e0e0;
+        padding: 24px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        height: 100%;
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        border-color: #cbd5e1;
+    }
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+    }
+    .stat-val {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #1f1f1f;
+        line-height: 1.2;
+    }
+    .stat-lbl {
+        font-size: 0.85rem;
+        color: #5f6368;
+        font-weight: 500;
+    }
+    .recent-file-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e0e0e0;
+        padding: 20px;
+        transition: all 0.2s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .recent-file-card:hover {
+        border-color: #0b57d0;
+        box-shadow: 0 6px 18px rgba(11, 87, 208, 0.08);
+        transform: translateY(-2px);
+    }
+    .badge-size {
+        font-size: 0.75rem;
+        background-color: #f1f3f4;
+        color: #444746;
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 4px 8px;
+    }
+    .gradient-text {
+        background: linear-gradient(135deg, #0b57d0 0%, #1a73e8 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+</style>
+
+<div class="container py-4">
+    <!-- Hero Banner Section -->
+    <div class="hero-section text-center text-md-start d-md-flex align-items-center justify-content-between">
+        <div class="max-width-600 mb-4 mb-md-0" style="z-index: 2; position: relative;">
+            <h1 class="display-5 fw-bold mb-3">Hệ thống Chia sẻ Tài liệu DriveShare</h1>
+            <p class="lead mb-4 text-white-50">Lưu trữ tài liệu cá nhân, tải xuống file an toàn và chia sẻ liên kết với mọi người dễ dàng qua các thao tác kéo thả.</p>
+            <div class="d-flex flex-wrap gap-3 justify-content-center justify-md-start">
+                <a asp-controller="File" asp-action="Index" class="btn btn-light rounded-pill px-4 py-2 fw-semibold text-primary shadow-sm">
+                    <i class="bi bi-folder2-open me-1"></i> Khám phá kho file
+                </a>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <a asp-controller="File" asp-action="Upload" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-cloud-arrow-up me-1"></i> Tải tài liệu lên
+                    </a>
+                }
+                else
+                {
+                    <a href="/Identity/Account/Register" class="btn btn-outline-light rounded-pill px-4 py-2 fw-semibold">
+                        <i class="bi bi-person-plus me-1"></i> Đăng ký thành viên
+                    </a>
+                }
+            </div>
+        </div>
+        <div class="d-none d-lg-block text-center" style="z-index: 2; position: relative; width: 300px;">
+            <i class="bi bi-cloud-arrow-up-fill text-white" style="font-size: 10rem; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.15));"></i>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                    <i class="bi bi-file-earmark-text-fill"></i>
+                </div>
+                <div>
+                    <div class="stat-val">@totalFiles</div>
+                    <div class="stat-lbl">Tài liệu đã chia sẻ</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon bg-success bg-opacity-10 text-success">
+                    <i class="bi bi-cloud-download-fill"></i>
+                </div>
+                <div>
+                    <div class="stat-val">@totalDownloads</div>
+                    <div class="stat-lbl">Tổng lượt tải xuống</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="stat-card">
+                <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div>
+                    <div class="stat-val">@totalUsers</div>
+                    <div class="stat-lbl">Thành viên đăng ký</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Uploads Section -->
+    <div class="mb-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="fw-bold m-0 text-dark"><i class="bi bi-clock-history me-2 text-primary"></i>Tài liệu mới tải lên</h3>
+            <a asp-controller="File" asp-action="Index" class="text-decoration-none fw-semibold">Xem tất cả <i class="bi bi-arrow-right"></i></a>
+        </div>
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="card border-0 shadow-sm text-center py-5 bg-white rounded-4">
+                <div class="card-body">
+                    <i class="bi bi-file-earmark-excel text-muted display-4 mb-3"></i>
+                    <h5 class="fw-bold text-dark">Chưa có tệp tin nào</h5>
+                    <p class="text-secondary max-width-400 mx-auto">Hệ thống hiện tại chưa ghi nhận tệp tin nào được tải lên.</p>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="row g-4">
+                @foreach (var file in Model)
+                {
+                    <div class="col-md-6 col-lg-3">
+                        <div class="recent-file-card">
+                            <div>
+                                <div class="d-flex align-items-start gap-3 mb-3">
+                                    <i class="bi @GetFileIcon(file.OriginalFileName) fs-1"></i>
+                                    <div class="min-w-0">
+                                        <h6 class="fw-bold text-dark text-truncate mb-1" title="@file.Title">@file.Title</h6>
+                                        <small class="text-muted text-truncate d-block" style="font-size: 0.75rem;">@file.OriginalFileName</small>
+                                    </div>
+                                </div>
+                                <p class="text-secondary small mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; height: 36px;">
+                                    @(string.IsNullOrEmpty(file.Description) ? "Không có mô tả chi tiết." : file.Description)
+                                </p>
+                            </div>
+
+                            <div>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <span class="badge-size">@FormatSize(file.FileSize)</span>
+                                    <span class="small text-muted"><i class="bi bi-download me-1"></i>@file.DownloadCount</span>
+                                </div>
+                                <a asp-controller="File" asp-action="Download" asp-route-id="@file.Id" class="btn btn-outline-primary btn-sm w-100 rounded-pill">
+                                    <i class="bi bi-download me-1"></i> Tải về
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Core Features Section -->
+    <div class="bg-white rounded-4 p-4 border border-light shadow-sm">
+        <h4 class="fw-bold text-center mb-4 gradient-text">Các chức năng nổi bật của hệ thống</h4>
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <i class="bi bi-shield-fill-check text-primary fs-1 mb-2"></i>
+                <h5 class="fw-bold text-dark">Lưu trữ Bảo mật</h5>
+                <p class="text-secondary small">Mã hóa tên file lưu vật lý để tránh trùng lặp tệp và truy cập trái phép trực tiếp.</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="bi bi-link-45deg text-success fs-1 mb-2"></i>
+                <h5 class="fw-bold text-dark">Liên kết chia sẻ linh hoạt</h5>
+                <p class="text-secondary small">Tạo link chia sẻ với các cấu hình thời gian hết hạn (1 giờ, 24 giờ, 1 tuần hoặc vĩnh viễn).</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <i class="bi bi-trophy-fill text-warning fs-1 mb-2"></i>
+                <h5 class="fw-bold text-dark">Bảng xếp hạng hệ thống</h5>
+                <p class="text-secondary small">Ghi nhận và vinh danh những người dùng đóng góp nhiều file nhất cùng tài liệu có ích nhất.</p>
+            </div>
+        </div>
+    </div>
 </div>

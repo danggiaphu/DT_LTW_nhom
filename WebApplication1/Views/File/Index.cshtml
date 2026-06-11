@@ -6,6 +6,10 @@
     var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
     var filter = ViewBag.CurrentFilter as string ?? "all";
     var search = ViewBag.CurrentSearch as string ?? "";
+    var fileType = ViewBag.CurrentFileType as string ?? "all";
+    var currentPage = (int)(ViewBag.CurrentPage ?? 1);
+    var totalPages = (int)(ViewBag.TotalPages ?? 1);
+    var totalFiles = (int)(ViewBag.TotalFiles ?? 0);
 }
 
 @functions {
@@ -239,6 +243,57 @@
         align-items: center;
         gap: 4px;
     }
+    
+    /* Styles for file type chips */
+    .filter-chips {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 24px;
+    }
+    .chip-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        background-color: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 20px;
+        color: #4b5563;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        text-decoration: none !important;
+    }
+    .chip-btn:hover {
+        background-color: #f1f5f9;
+        color: #0f172a;
+        border-color: #cbd5e1;
+    }
+    .chip-btn.active {
+        background-color: #0b57d0;
+        color: #ffffff;
+        border-color: #0b57d0;
+    }
+    
+    .sidebar-section-title {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #94a3b8;
+        font-weight: 700;
+        margin-top: 24px;
+        margin-bottom: 12px;
+        padding-left: 20px;
+    }
+    
+    .pagination-rounded .page-link {
+        transition: all 0.2s ease;
+    }
+    .pagination-rounded .page-link:hover {
+        background-color: #e2e8f0 !important;
+        color: #0f172a !important;
+    }
 </style>
 
 <div class="container-fluid py-3">
@@ -273,7 +328,7 @@
             }
             <ul class="sidebar-menu">
                 <li class="sidebar-item @(filter == "all" ? "active" : "")">
-                    <a asp-action="Index" asp-route-filter="all">
+                    <a asp-action="Index" asp-route-filter="all" asp-route-fileType="@fileType">
                         <i class="bi bi-hdd-fill"></i>
                         <span>Tất cả tài liệu</span>
                     </a>
@@ -281,7 +336,7 @@
                 @if (User.Identity.IsAuthenticated)
                 {
                     <li class="sidebar-item @(filter == "my" ? "active" : "")">
-                        <a asp-action="Index" asp-route-filter="my">
+                        <a asp-action="Index" asp-route-filter="my" asp-route-fileType="@fileType">
                             <i class="bi bi-folder-fill"></i>
                             <span>Tài liệu của tôi</span>
                         </a>
@@ -294,6 +349,58 @@
                     </a>
                 </li>
             </ul>
+
+            <div class="sidebar-section-title">Định dạng file</div>
+            <ul class="sidebar-menu">
+                <li class="sidebar-item @(fileType == "all" ? "active" : "")">
+                    <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="all">
+                        <i class="bi bi-collection-fill"></i>
+                        <span>Tất cả tệp</span>
+                    </a>
+                </li>
+                <li class="sidebar-item @(fileType == "pdf" ? "active" : "")">
+                    <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="pdf">
+                        <i class="bi bi-file-pdf-fill text-danger"></i>
+                        <span>Tài liệu PDF</span>
+                    </a>
+                </li>
+                <li class="sidebar-item @(fileType == "word" ? "active" : "")">
+                    <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="word">
+                        <i class="bi bi-file-word-fill text-primary"></i>
+                        <span>Văn bản Word</span>
+                    </a>
+                </li>
+                <li class="sidebar-item @(fileType == "excel" ? "active" : "")">
+                    <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="excel">
+                        <i class="bi bi-file-excel-fill text-success"></i>
+                        <span>Bảng tính Excel</span>
+                    </a>
+                </li>
+                <li class="sidebar-item @(fileType == "ppt" ? "active" : "")">
+                    <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="ppt">
+                        <i class="bi bi-file-ppt-fill text-warning"></i>
+                        <span>Trình chiếu PPT</span>
+                    </a>
+                </li>
+                <li class="sidebar-item @(fileType == "image" ? "active" : "")">
+                    <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="image">
+                        <i class="bi bi-file-image-fill text-info"></i>
+                        <span>Hình ảnh</span>
+                    </a>
+                </li>
+                <li class="sidebar-item @(fileType == "archive" ? "active" : "")">
+                    <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="archive">
+                        <i class="bi bi-file-zip-fill text-warning"></i>
+                        <span>Tệp nén ZIP/RAR</span>
+                    </a>
+                </li>
+                <li class="sidebar-item @(fileType == "other" ? "active" : "")">
+                    <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="other">
+                        <i class="bi bi-file-earmark-fill text-muted"></i>
+                        <span>Định dạng khác</span>
+                    </a>
+                </li>
+            </ul>
         </div>
 
         <!-- Vùng nội dung chính -->
@@ -301,18 +408,47 @@
             <!-- Search bar và lọc -->
             <form method="get" asp-action="Index" class="mb-4">
                 <input type="hidden" name="filter" value="@filter" />
+                <input type="hidden" name="fileType" value="@fileType" />
                 <div class="search-container">
                     <i class="bi bi-search text-muted fs-5"></i>
                     <input type="text" name="search" class="search-input" placeholder="Tìm kiếm trong tài liệu..." value="@search" autocomplete="off" />
                     @if (!string.IsNullOrEmpty(search))
                     {
-                        <a asp-action="Index" asp-route-filter="@filter" class="btn btn-link text-muted p-0 me-2" title="Xóa tìm kiếm">
+                        <a asp-action="Index" asp-route-filter="@filter" asp-route-fileType="@fileType" class="btn btn-link text-muted p-0 me-2" title="Xóa tìm kiếm">
                             <i class="bi bi-x-lg"></i>
                         </a>
                     }
                     <button type="submit" class="btn btn-primary btn-sm rounded-pill px-4">Tìm kiếm</button>
                 </div>
             </form>
+
+            <!-- Quick Filter Chips -->
+            <div class="filter-chips">
+                <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="all" class="chip-btn @(fileType == "all" ? "active" : "")">
+                    <i class="bi bi-collection-fill"></i> Tất cả
+                </a>
+                <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="pdf" class="chip-btn @(fileType == "pdf" ? "active" : "")">
+                    <i class="bi bi-file-pdf-fill text-danger"></i> PDF
+                </a>
+                <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="word" class="chip-btn @(fileType == "word" ? "active" : "")">
+                    <i class="bi bi-file-word-fill text-primary"></i> Word
+                </a>
+                <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="excel" class="chip-btn @(fileType == "excel" ? "active" : "")">
+                    <i class="bi bi-file-excel-fill text-success"></i> Excel
+                </a>
+                <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="ppt" class="chip-btn @(fileType == "ppt" ? "active" : "")">
+                    <i class="bi bi-file-ppt-fill text-warning"></i> PowerPoint
+                </a>
+                <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="image" class="chip-btn @(fileType == "image" ? "active" : "")">
+                    <i class="bi bi-file-image-fill text-info"></i> Hình ảnh
+                </a>
+                <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="archive" class="chip-btn @(fileType == "archive" ? "active" : "")">
+                    <i class="bi bi-file-zip-fill text-warning"></i> Tệp nén
+                </a>
+                <a asp-action="Index" asp-route-filter="@filter" asp-route-search="@search" asp-route-fileType="other" class="chip-btn @(fileType == "other" ? "active" : "")">
+                    <i class="bi bi-file-earmark-fill text-muted"></i> Khác
+                </a>
+            </div>
 
             <!-- Tiêu đề trang -->
             <div class="d-flex justify-content-between align-items-center mb-3">
@@ -327,22 +463,25 @@
                     }
                 </h4>
                 <div class="text-muted small">
-                    Hiển thị <strong>@Model.Count()</strong> tệp tin
+                    Tìm thấy <strong>@totalFiles</strong> tệp tin @(fileType != "all" ? $"định dạng {fileType.ToUpper()}" : "")
                 </div>
             </div>
 
             <!-- Grid danh sách files -->
             @if (Model == null || !Model.Any())
             {
-                <div class="card border-0 shadow-sm text-center py-5 bg-white rounded-4">
+                <div class="card border-0 shadow-sm text-center py-5 bg-white rounded-4 w-100">
                     <div class="card-body">
                         <i class="bi bi-file-earmark-arrow-up text-muted display-1 mb-3"></i>
-                        <h5 class="fw-bold text-dark">Chưa có tệp tin nào</h5>
-                        <p class="text-secondary max-width-400 mx-auto">Không tìm thấy tài liệu phù hợp với điều kiện lọc hoặc từ khóa tìm kiếm của bạn.</p>
-                        @if (User.Identity.IsAuthenticated)
-                        {
-                            <a asp-action="Upload" class="btn btn-primary rounded-pill px-4 mt-2">Tải tệp tin đầu tiên</a>
-                        }
+                        <h5 class="fw-bold text-dark">Chưa có tệp tin nào phù hợp</h5>
+                        <p class="text-secondary max-width-400 mx-auto">Không tìm thấy tài liệu nào khớp với từ khóa tìm kiếm hoặc bộ lọc định dạng bạn đã chọn.</p>
+                        <div class="d-flex gap-2 justify-content-center mt-3">
+                            <a asp-action="Index" asp-route-filter="@filter" class="btn btn-outline-secondary rounded-pill px-4">Xóa bộ lọc</a>
+                            @if (User.Identity.IsAuthenticated)
+                            {
+                                <a asp-action="Upload" class="btn btn-primary rounded-pill px-4">Tải tệp tin mới</a>
+                            }
+                        </div>
                     </div>
                 </div>
             }
@@ -421,6 +560,58 @@
                         </div>
                     }
                 </div>
+
+                <!-- Phân trang (Pagination) -->
+                @if (totalPages > 1)
+                {
+                    <nav aria-label="Page navigation" class="mt-5 d-flex justify-content-center">
+                        <ul class="pagination pagination-rounded gap-1">
+                            <!-- Nút Trước -->
+                            <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                                <a class="page-link border-0 shadow-sm rounded-circle d-flex align-items-center justify-content-center" 
+                                   style="width: 40px; height: 40px;"
+                                   asp-action="Index" 
+                                   asp-route-filter="@filter" 
+                                   asp-route-search="@search" 
+                                   asp-route-fileType="@fileType" 
+                                   asp-route-page="@(currentPage - 1)" 
+                                   aria-label="Previous">
+                                    <i class="bi bi-chevron-left"></i>
+                                </a>
+                            </li>
+
+                            <!-- Các số trang -->
+                            @for (int i = 1; i <= totalPages; i++)
+                            {
+                                <li class="page-item @(currentPage == i ? "active" : "")">
+                                    <a class="page-link border-0 shadow-sm rounded-circle d-flex align-items-center justify-content-center fw-semibold" 
+                                       style="width: 40px; height: 40px; @(currentPage == i ? "background-color: #0b57d0; color: #ffffff;" : "background-color: #ffffff; color: #4b5563;")"
+                                       asp-action="Index" 
+                                       asp-route-filter="@filter" 
+                                       asp-route-search="@search" 
+                                       asp-route-fileType="@fileType" 
+                                       asp-route-page="@i">
+                                        @i
+                                    </a>
+                                </li>
+                            }
+
+                            <!-- Nút Tiếp -->
+                            <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                                <a class="page-link border-0 shadow-sm rounded-circle d-flex align-items-center justify-content-center" 
+                                   style="width: 40px; height: 40px;"
+                                   asp-action="Index" 
+                                   asp-route-filter="@filter" 
+                                   asp-route-search="@search" 
+                                   asp-route-fileType="@fileType" 
+                                   asp-route-page="@(currentPage + 1)" 
+                                   aria-label="Next">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                }
             }
         </div>
     </div>

@@ -92,8 +92,9 @@ namespace WebApplication1.Controllers
 
             if (!System.IO.File.Exists(filePath)) return NotFound("File gốc đã bị xóa.");
 
-            // Tăng số lượt tải xuống
+            // Tăng số lượt tải xuống và cập nhật thời gian tải cuối
             file.DownloadCount++;
+            file.LastDownloadedAt = DateTime.Now;
             _context.StoredFiles.Update(file);
             await _context.SaveChangesAsync();
 

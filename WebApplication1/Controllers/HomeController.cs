@@ -1,5 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using WebApplication1.DataAccess;
 using WebApplication1.Models;
 
 namespace WebApplication1.Controllers
@@ -7,15 +11,28 @@ namespace WebApplication1.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private readonly ApplicationDbContext _context;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, ApplicationDbContext context)
         {
             _logger = logger;
+            _context = context;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            return View();
+            // Thống kê số lượng
+            ViewBag.TotalFiles = await _context.StoredFiles.CountAsync();
+            ViewBag.TotalDownloads = await _context.StoredFiles.SumAsync(f => f.DownloadCount);
+            ViewBag.TotalUsers = await _context.Users.CountAsync();
+
+            // Lấy 4 file mới nhất
+            var recentFiles = await _context.StoredFiles
+                .OrderByDescending(f => f.UploadedAt)
+                .Take(4)
+                .ToListAsync();
+
+            return View(recentFiles);
         }
 
         public IActionResult Privacy()

@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.DataAccess;
 using WebApplication1.Data;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using WebApplication1.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +32,17 @@ builder.Services.AddAuthentication()
         options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
     });
 
+
+// Đăng ký cấu hình Email
+builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
+
+// Đăng ký dịch vụ IEmailSender của Identity
+builder.Services.AddTransient<IEmailSender, EmailSender>();
+
+// Đăng ký dịch vụ dọn dẹp file tự động chạy nền
+builder.Services.AddHostedService<WebApplication1.Services.FileCleanupService>();
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -43,7 +56,6 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 
-app.UseRouting();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();

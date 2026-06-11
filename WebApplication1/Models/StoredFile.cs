@@ -30,6 +30,10 @@ namespace WebApplication1.Models
         public string? UserId { get; set; } // Khóa ngoại kết nối với bảng User sau này
 
         public int DownloadCount { get; set; } = 0; // Số lượt tải xuống tài liệu
+
+        public DateTime? LastDownloadedAt { get; set; } // Thời điểm tải xuống gần nhất
+
+        public int InactivityExpirationDays { get; set; } = 30; // Số ngày tự động xóa nếu không hoạt động
     }
 }
 
